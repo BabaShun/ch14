@@ -9,6 +9,7 @@ class User < ApplicationRecord
                                    dependent:   :destroy
   has_many :following, through: :active_relationships,  source: :followed
   has_many :followers, through: :passive_relationships, source: :follower
+  has_many :notifications, dependent: :destroy
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save   :downcase_email
   before_create :create_activation_digest
@@ -84,6 +85,13 @@ class User < ApplicationRecord
                      WHERE follower_id = :user_id"
     Micropost.where("user_id IN (#{following_ids})
                      OR user_id = :user_id", user_id: id)
+  end
+
+  def create_first_signin_notification
+    Notification.create!(
+      user_id: id,
+      kind: 'first_signin'
+    )
   end
 
   # ユーザーをフォローする
